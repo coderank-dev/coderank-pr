@@ -95,7 +95,7 @@ poster = Agent(
 _AGENT_SEQUENCE: tuple[Agent, ...] = (reader, resolver, reviewer, skeptic, poster)
 
 
-@node(name="coderank_reviewer_pipeline")
+@node(name="coderank_reviewer_pipeline", rerun_on_resume=True)
 async def coderank_reviewer_pipeline(ctx: Context, node_input: str) -> str:
     """Drive the five agents in order, passing state between them.
 
