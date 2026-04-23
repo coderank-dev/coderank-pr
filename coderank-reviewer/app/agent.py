@@ -117,5 +117,10 @@ root_agent = Workflow(
 
 app = App(
     root_agent=root_agent,
-    name="coderank_reviewer",
+    # Must match the agent module's directory name ("app/"). The ADK CLI
+    # auto-discovers agents by scanning agents_dir and uses the subdirectory
+    # name as the session service key; any other value breaks session lookup.
+    # Workflow(name="coderank_reviewer") above is the product-facing name
+    # that appears in Playground, traces, and observability.
+    name="app",
 )
