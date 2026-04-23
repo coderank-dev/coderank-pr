@@ -96,15 +96,16 @@ _AGENT_SEQUENCE: tuple[Agent, ...] = (reader, resolver, reviewer, skeptic, poste
 
 
 @node(name="coderank_reviewer_pipeline")
-async def coderank_reviewer_pipeline(ctx: Context, pr_url: str) -> str:
+async def coderank_reviewer_pipeline(ctx: Context, node_input: str) -> str:
     """Drive the five agents in order, passing state between them.
 
-    Each agent currently forwards an acknowledgement. In subsequent slices
-    this orchestrator will pass structured payloads (typed via Pydantic
-    models in app.schemas) rather than free-form strings.
+    The `node_input` parameter name is required: ADK's function-node binder
+    looks for that exact name to forward the user's inbound message. Later
+    slices will promote this to a typed payload (PR URL, head SHA, install ID)
+    via a Pydantic model once the webhook path is in place.
     """
 
-    state: str = pr_url
+    state: str = node_input
     for agent in _AGENT_SEQUENCE:
         state = await ctx.run_node(agent, state)
     return state
