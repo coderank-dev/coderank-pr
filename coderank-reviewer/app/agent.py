@@ -3,46 +3,119 @@
 # Licensed under the Apache License, Version 2.0 (the "License").
 # See the LICENSE file at the repository root.
 
-"""CodeRank Reviewer agent.
+"""CodeRank Reviewer agent graph.
 
-Scaffold. The production pipeline is a five-node ADK 2.0 Beta workflow
-(Reader -> Resolver -> Reviewer -> Skeptic -> Poster) grounded in the
-CodeRank MCP server and the official GitHub MCP server.
+Five specialized agents collaborate on each pull request, orchestrated
+as an ADK 2.0 Beta Workflow:
 
-This file currently ships the minimal stub needed for `agents-cli playground`
-and `agents-cli install` to succeed. The multi-agent graph lands in a
-subsequent commit.
+    Reader -> Resolver -> Reviewer -> Skeptic -> Poster
+
+This file defines the graph skeleton. Each agent currently carries a
+placeholder instruction so the shape is verifiable in `agents-cli
+playground` and unit tests. Real instructions, MCP toolsets, and the
+Skeptic's RequestInput gate land in subsequent slices.
 """
+
+from __future__ import annotations
 
 import os
 
 import google.auth
+from google.adk import Context, Workflow
 from google.adk.agents import Agent
 from google.adk.apps import App
-from google.adk.models import Gemini
-from google.genai import types
+from google.adk.workflow import START, node
 
 _, project_id = google.auth.default()
 os.environ["GOOGLE_CLOUD_PROJECT"] = project_id
 os.environ["GOOGLE_CLOUD_LOCATION"] = "global"
 os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "True"
 
+_MODEL = "gemini-3.1-pro"
 
-root_agent = Agent(
-    name="coderank_reviewer",
-    model=Gemini(
-        model="gemini-3.1-pro",
-        retry_options=types.HttpRetryOptions(attempts=3),
-    ),
+
+reader = Agent(
+    name="reader",
+    model=_MODEL,
     instruction=(
-        "You are the CodeRank Reviewer. You review GitHub pull requests and "
-        "comment only when a claim can be grounded in a CodeRank API surface. "
-        "No citation, no comment."
+        "You are the Reader. In later slices you will use the GitHub MCP "
+        "toolset to fetch a pull request's metadata, diff, and list of "
+        "changed external symbols. For now, respond with a short "
+        "acknowledgement of the input you received."
     ),
-    tools=[],
+)
+
+resolver = Agent(
+    name="resolver",
+    model=_MODEL,
+    instruction=(
+        "You are the Resolver. In later slices you will call the CodeRank "
+        "MCP server's resolve_symbol tool for every external symbol the "
+        "Reader extracted, tagging each as resolved or not_found. For now, "
+        "pass the Reader's output through with a short acknowledgement."
+    ),
+)
+
+reviewer = Agent(
+    name="reviewer",
+    model=_MODEL,
+    instruction=(
+        "You are the Reviewer. In later slices you will draft pull request "
+        "comments grounded in the surfaces the Resolver returned. Every "
+        "draft must include a citation URL. No citation, no comment. For "
+        "now, pass the Resolver's output through with a short "
+        "acknowledgement."
+    ),
+)
+
+skeptic = Agent(
+    name="skeptic",
+    model=_MODEL,
+    instruction=(
+        "You are the Skeptic. In later slices you will re-fetch every "
+        "citation the Reviewer produced and verify that the cited surface "
+        "actually supports the claim, rejecting any draft that does not "
+        "hold up. This is the hallucination firewall. For now, pass the "
+        "Reviewer's output through with a short acknowledgement."
+    ),
+)
+
+poster = Agent(
+    name="poster",
+    model=_MODEL,
+    instruction=(
+        "You are the Poster. In later slices you will use the GitHub MCP "
+        "toolset to publish the Skeptic's approved comments back to the "
+        "pull request with a 'Grounded in:' citation footer. For now, "
+        "emit a short summary of the state you received."
+    ),
+)
+
+
+_AGENT_SEQUENCE: tuple[Agent, ...] = (reader, resolver, reviewer, skeptic, poster)
+
+
+@node(name="coderank_reviewer_pipeline")
+async def coderank_reviewer_pipeline(ctx: Context, pr_url: str) -> str:
+    """Drive the five agents in order, passing state between them.
+
+    Each agent currently forwards an acknowledgement. In subsequent slices
+    this orchestrator will pass structured payloads (typed via Pydantic
+    models in app.schemas) rather than free-form strings.
+    """
+
+    state: str = pr_url
+    for agent in _AGENT_SEQUENCE:
+        state = await ctx.run_node(agent, state)
+    return state
+
+
+root_agent = Workflow(
+    name="coderank_reviewer",
+    edges=[(START, coderank_reviewer_pipeline)],
 )
 
 app = App(
     root_agent=root_agent,
-    name="coderank-reviewer",
+    name="coderank_reviewer",
 )
