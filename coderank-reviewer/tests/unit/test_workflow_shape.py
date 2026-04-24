@@ -65,4 +65,6 @@ def test_agents_use_pinned_model() -> None:
     for agent in (reader, resolver, reviewer, skeptic, poster):
         # model can be a string or a Gemini() config; we accept both
         model_id = agent.model if isinstance(agent.model, str) else agent.model.model
-        assert model_id == expected, f"{agent.name} uses {model_id}; expected {expected}"
+        assert model_id == expected, (
+            f"{agent.name} uses {model_id}; expected {expected}"
+        )
