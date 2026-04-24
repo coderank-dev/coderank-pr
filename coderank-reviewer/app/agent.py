@@ -31,7 +31,12 @@ os.environ["GOOGLE_CLOUD_PROJECT"] = project_id
 os.environ["GOOGLE_CLOUD_LOCATION"] = "global"
 os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "True"
 
-_MODEL = "gemini-3.1-pro"
+# gemini-3.1-pro-preview is the Vertex AI publisher ID for what blog.google
+# calls "Gemini 3.1 Pro" (preview as of April 2026). It shows up alongside
+# gemini-2.5-pro and gemini-3-pro-preview in the publishers/google/models
+# catalog. If the preview suffix is dropped at GA, update here and in
+# tests/unit/test_workflow_shape.py.
+_MODEL = "gemini-3.1-pro-preview"
 
 
 reader = Agent(

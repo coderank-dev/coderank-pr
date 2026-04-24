@@ -60,10 +60,9 @@ def test_root_agent_has_expected_name() -> None:
 
 
 def test_agents_use_pinned_model() -> None:
-    """Every agent targets gemini-3.1-pro so thinking_level and observability stay consistent."""
+    """Every agent targets gemini-3.1-pro-preview so thinking_level and observability stay consistent."""
+    expected = "gemini-3.1-pro-preview"
     for agent in (reader, resolver, reviewer, skeptic, poster):
         # model can be a string or a Gemini() config; we accept both
         model_id = agent.model if isinstance(agent.model, str) else agent.model.model
-        assert model_id == "gemini-3.1-pro", (
-            f"{agent.name} uses {model_id}; expected gemini-3.1-pro"
-        )
+        assert model_id == expected, f"{agent.name} uses {model_id}; expected {expected}"
