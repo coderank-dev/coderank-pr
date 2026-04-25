@@ -1,0 +1,55 @@
+# Dependabot configuration.
+# Docs: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+
+updates:
+  # Python dependencies for the agent (uv / pyproject.toml).
+  - package-ecosystem: "uv"
+    directory: "/coderank-reviewer"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Europe/Tallinn"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "python"
+    groups:
+      python-minor-and-patch:
+        applies-to: "version-updates"
+        update-types:
+          - "minor"
+          - "patch"
+    ignore:
+      # LiteLLM is a transitive dependency through google-adk[eval] ->
+      # google-cloud-aiplatform, which pins it to <=1.82.6. We cannot
+      # upgrade until upstream relaxes the pin. CodeRank Reviewer never
+      # imports or runs LiteLLM (Gemini-only via Vertex AI). See
+      # SECURITY.md "LiteLLM transitive dependency" for the full audit.
+      - dependency-name: "litellm"
+
+  # GitHub Actions workflow dependencies.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Europe/Tallinn"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(ci)"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    groups:
+      actions-minor-and-patch:
+        applies-to: "version-updates"
+        update-types:
+          - "minor"
+          - "patch"
