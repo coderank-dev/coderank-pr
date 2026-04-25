@@ -16,8 +16,10 @@ requires-python = ">=3.11,<3.14"
 
 [dependency-groups]
 dev = [
-    "pytest>=8.3.4,<9.0.0",
-    "pytest-asyncio>=0.23.8,<1.0.0",
+    # pytest 9.0.3 patches CVE-2025-71176 (insecure tmpdir handling).
+    # pytest-asyncio 1.x is the first line that supports pytest 9.
+    "pytest>=9.0.3",
+    "pytest-asyncio>=1.0.0",
     "nest-asyncio>=1.6.0,<2.0.0",
 ]
 
