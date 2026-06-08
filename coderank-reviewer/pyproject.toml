@@ -8,8 +8,8 @@ authors = [
 dependencies = [
     "google-adk==2.0.0b1",
     "opentelemetry-instrumentation-google-genai>=0.1.0,<1.0.0",
-    "gcsfs>=2024.11.0",
-    "google-cloud-logging>=3.12.0,<4.0.0",
+    "gcsfs>=2026.5.0",
+    "google-cloud-logging>=3.16.0,<4.0.0",
 ]
 requires-python = ">=3.11,<3.14"
 
@@ -19,7 +19,7 @@ dev = [
     # pytest 9.0.3 patches CVE-2025-71176 (insecure tmpdir handling).
     # pytest-asyncio 1.x is the first line that supports pytest 9.
     "pytest>=9.0.3",
-    "pytest-asyncio>=1.0.0",
+    "pytest-asyncio>=1.4.0",
     "nest-asyncio>=1.6.0,<2.0.0",
 ]
 
@@ -28,8 +28,8 @@ eval = [
     "google-adk[eval]==2.0.0b1",
 ]
 lint = [
-    "ruff>=0.4.6,<1.0.0",
-    "ty>=0.0.1a0",
+    "ruff>=0.15.16,<1.0.0",
+    "ty>=0.0.44",
     "codespell>=2.2.0,<3.0.0",
 ]
 
